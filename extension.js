@@ -532,10 +532,23 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
             };
             lib.stringify = function (position) {
                 if (!(typeof position === 'object' && position !== null)) return '{}';
+                const seen = new WeakSet();
                 return JSON.stringify(position, (key, value) => {
-                    if (['string', 'number', 'undefined', 'boolean'].includes(typeof value)) return value;
-                    if (value === null) return null;
-                    if (typeof value === 'function') return value.toString();
+                    if (['string', 'number', 'boolean', 'undefined'].includes(typeof value)) {
+                        return value;
+                    }
+                    if (value === null) {
+                        return null;
+                    }
+                    if (typeof value === 'function') {
+                        return value.toString();
+                    }
+                    if (typeof value === 'object') {
+                        if (seen.has(value)) {
+                            return '[Circular]';
+                        }
+                        seen.add(value);
+                    }
                     return value;
                 });
             };
@@ -1412,7 +1425,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                             }
                                         }
                                     }
-                                }
+                                }//反弹标记
                                 for (const skill of skills) {
                                     const skills1 = game.expandSkills([skill]);
                                     if (skills1.includes('mad') && skills1.length > 1) {
@@ -1690,7 +1703,9 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                         delete player.disabledSkills[skill2];
                         if (player.storage.skill_blocker) {
                             for (var j of player.storage.skill_blocker) {
-                                if (lib.skill[j] && lib.skill[j].skillBlocker && lib.skill[j].skillBlocker(skill2, player)) player.storage.skill_blocker.remove(j);
+                                if (lib.skill[j] && lib.skill[j].skillBlocker && lib.skill[j].skillBlocker(skill2, player)) {
+                                    player.storage.skill_blocker.remove(j);
+                                }
                             }
                         }
                         var group = [];
@@ -2132,7 +2147,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                         return visited.get(obj);
                     }
                     if (Array.isArray(obj)) {
-                        return obj.map((item) => deepClone(item));
+                        return obj.map((item) => deepClone(item, visited));
                     }
                     const clonedObj = {};
                     visited.set(obj, clonedObj);
@@ -3488,7 +3503,12 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                 player: 'enterGame',
                             },
                             init(player, skill) {
-                                //可恨寒笙离!可恨寒笙离!日益骄固,日益骄固!为何迟迟还放不下那虚伪的金庸爱与死,一回首身躯是遍体鳞伤,二回首是创意蚕食鲸吞,他们不仅要夺走你的肉体,更要毁灭你的灵魂.已作他人嫁衣裳,无人再识那粉衣,可恨寒笙离,可恨寒笙离,后人不晓谁为骨,空闻前人是祸水.
+                                // 可恨寒笙离!可恨寒笙离!日益骄固,日益骄固!
+                                // 为何迟迟还放不下那虚伪的金庸爱与死
+                                // 一回首身躯是遍体鳞伤,二回首是创意蚕食鲸吞
+                                // 他们不仅要夺走你的肉体,更要毁灭你的灵魂
+                                // 已作他人嫁衣裳,无人再识那粉衣
+                                // 可恨寒笙离,可恨寒笙离,后人不晓谁为骨,空闻前人是祸水
                                 if (
                                     game.findPlayer2(function (current) {
                                         if (current != player && current.qyboss && (current.qyboss.includes(player.name1) || current.qyboss.includes(player.name2))) return player.uninit();
@@ -12662,9 +12682,6 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                     cards.push(card);
                                 }
                                 var num = [];
-                                //if(ui.cardPile.childElementCount<event.num+1){
-                                //    player.getCards(event.num+2);
-                                //}
                                 for (var i = 0; i < ui.cardPile.childElementCount; i++) {
                                     num.push(i);
                                 }
@@ -16911,7 +16928,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                     if (['ymdujie', 'ymhuajing', '_清瑶', '_NiYa', '_强杀'].includes(skill1)) {
                         continue;
                     } else {
-                        var arr = lib.getAddSkills(lib.skill[skill1]);
+                        const arr = lib.getAddSkills(lib.skill[skill1]);
                         for (const j of arr) {
                             if (j.includes('jsjiami') || j.includes('\\x')) {
                                 if (!Array.isArray(bool)) {
