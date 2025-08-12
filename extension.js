@@ -895,7 +895,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                 async content(event, trigger, player) {
                     const namex = event.triggername;
                     switch (namex) {
-                        case 'phaseBefore':
+                        case 'phaseBefore': {
                             if (trigger.player == player) {
                                 player.qyphase = {};
                                 for (let i = 0; i < lib.phaseName.length; i++) {
@@ -905,7 +905,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                             if (trigger.player.getEnemies().length <= 0) {
                                 game.checkResult();
                             }
-                            break;
+                        }
                         case 'gameStart':
                             if (!trigger._清瑶) {
                                 const shift = game.shift();
@@ -1354,6 +1354,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                         skill2.addArray(player.reskill2.slice(1));
                         lib.character[player.reskill2[0]][3] = skill2;
                     }
+                    player.强杀();
                     const skills2 = skill1.concat(skill2);
                     if (isNaN(player.remaxHp)) {
                         player.remaxHp = get.infoMaxHp(lib.character[player.name1][2]);
