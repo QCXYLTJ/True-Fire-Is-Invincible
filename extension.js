@@ -261,15 +261,9 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                 }
                                 if (date() == '523') {
                                     game.boss.say('今天是我的生日,感谢你能在百忙之中来陪我');
-                                    function birthday() {
-                                        game.pause();
-                                        setTimeout(() => {
-                                            game.resume2();
-                                            game.over(true);
-                                        }, 5000);
-                                    }
-                                    const next = game.createEvent('birthday', false);
-                                    next.setContent(birthday);
+                                    setTimeout(() => {
+                                        game.over(true);
+                                    }, 5000);
                                     return;
                                 }
                                 game.side = true;
@@ -516,11 +510,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                 current.say('仪式完成之时,何人再敢与我为敌!');
                             }
                             if (current.name == 'qy_qylengyue') {
-                                game.pause2();
-                                const delay = setTimeout(() => {
-                                    current.say('难道真能因此改变未来吗？');
-                                    game.resume2();
-                                }, 2500);
+                                current.say('难道真能因此改变未来吗？');
                             }
                         });
                     },
@@ -1529,7 +1519,6 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                                     } else {
                                                         lib.element.player.addSkill.call(currentQ, skill5, false, false, false, true);
                                                     }
-                                                    skills5.splice(i--, 1);
                                                     break;
                                                 }
                                             }
@@ -2988,7 +2977,6 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                 }
                                 event.num = target.storage.ymhaoshouqiongjing.length;
                                 let num1 = 10 * (event.num + 1);
-                                //if(num1>100) num1=100;
                                 let num2 = num1 + 10;
                                 let list = [];
                                 let skills = target.getSkills(true, false);
@@ -3026,7 +3014,6 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                     const clickItem = function () {
                                         _status.event._result = this.link;
                                         dialog.close();
-                                        game.resume();
                                     };
                                     for (let i = 0; i < list.length; i++) {
                                         if (lib.translate[list[i] + '_info']) {
@@ -3045,10 +3032,8 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                     event.switchToAuto = function () {
                                         event._result = event.skillai();
                                         dialog.close();
-                                        game.resume();
                                     };
                                     _status.imchoosing = true;
-                                    game.pause();
                                 } else {
                                     event._result = event.skillai();
                                 }
@@ -3768,18 +3753,18 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                     return false;
                                 }
                                 let evt = history[history.length - 2], cards = evt.cards;
+                                let card;
                                 if (cards.length) {
-                                    let card = evt.cards[evt.cards.length - 1];
+                                    card = evt.cards[evt.cards.length - 1];
                                 }
                                 let list = [];
                                 if (Array.isArray(event.cards)) {
                                     for (let i of event.cards) {
-                                        //QQQ
                                         if (get.type(card, 'trick') != get.type(i, 'trick') && get.color(card) != get.color(i)) {
                                             list.add(i);
                                         }
                                     }
-                                }
+                                }//QQQ
                                 return list.length;
                             },
                             forced: true,
@@ -3831,7 +3816,8 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                     })
                                 ) {
                                 }
-                                skill = ['ymhuajing'], skill1 = [], skill2 = [];
+                                skill = ['ymhuajing'];
+                                let skill1 = [], skill2 = [];
                                 if (player.name1) {
                                     skill1 = lib.character[player.name1][3];
                                 }
@@ -4109,7 +4095,6 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                                     event.dialog = ui.create.dialog('');
                                                     event.dialog.classList.add('center');
                                                     event.dialog.videoId = event.videoId;
-                                                    game.addVideo('judge1', player, [get.cardInfo(card), '', event.videoId]);
                                                     player.$throwordered(card.copy(), true);
                                                     ui.arena.classList.remove('thrownhighlight');
                                                     event.dialog.close();
@@ -9271,7 +9256,6 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                     if (event.control) {
                                         event.control.close();
                                     }
-                                    game.resume();
                                     _status.imchoosing = false;
                                 };
                                 const chooseButton = function (player, str) {
@@ -9351,13 +9335,11 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                         }
                                         event.dialog.close();
                                         event.control.close();
-                                        game.resume();
                                         _status.imchoosing = false;
                                     });
                                     for (let i = 0; i < event.dialog.buttons.length; i++) {
                                         event.dialog.buttons[i].classList.add('selectable');
                                     }
-                                    game.pause();
                                     game.countChoose();
                                 };
                                 if (event.isMine()) {
@@ -11280,9 +11262,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                     if (lib.config.background_audio) {
                                         game.playAudio('../audio', 'card', player.sex, name);
                                     }
-                                    game.addVideo('equip', player, get.cardInfo(card));
                                     player.useCard(card, player);
-                                    //game.log(player, '将', cards, '视为', card, '使用');
                                 }
                             },
                             ai: {
