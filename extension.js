@@ -845,6 +845,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                             if (trigger.player.getEnemies().length <= 0) {
                                 game.checkResult();
                             }
+                            break;
                         case 'gameStart':
                             if (!trigger._清瑶) {
                                 const shift = game.shift();
@@ -1108,7 +1109,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                             break;
                         case 'useCardAfter':
                         case 'respondAfter':
-                        case 'phaseAfter':
+                        case 'phaseAfter': {
                             _status.qyskillFilter ??= {};
                             const triggerEnableNum = Object.values(_status.qyskillFilter).length;
                             if (triggerEnableNum > 0 && (_status.qySkillUse == trigger || namex == 'phaseAfter')) {
@@ -1126,6 +1127,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                     .filter((player1) => !player1.qyboss)
                                     .forEach((_0x67acf1) => trigger.untrigger(false, _0x67acf1));
                             }
+                        }
                             break;
                     }
                     const libphase = lib.phaseName.map((_0x3963fb) => _0x3963fb + 'After');
@@ -1444,7 +1446,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                     if (currentQ[i] != lib.element.player[i]) {
                                         currentQ[i] = lib.element.player[i];
                                     }
-                                } catch { }
+                                } catch (e) { }
                             } //抗性地狱还原属性
                             if (!currentQ.qyboss) {
                                 if (get.attitude(currentQ, player) <= 0) {
@@ -3199,7 +3201,6 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                         ymtianruihualing_skill: {
                             equipSkill: true,
                             trigger: { target: 'useCardToTarget' },
-                            forced: true,
                             audio: 'ext:真火无敌/audio:true',
                             forced: true,
                             filter(event, player) {
@@ -3462,13 +3463,10 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                         ymdujie: {
                             trigger: { player: ['damageBefore', 'damageBegin4', 'loseHpBefore'] },
                             init(player) {
-                                if (
-                                    game.findPlayer2(function (current) {
-                                        if (current != player && current.qyboss && (current.qyboss.includes(player.name1) || current.qyboss.includes(player.name2))) {
-                                            return player.uninit();
-                                        }
-                                    })
-                                ) {
+                                for (const current of game.players) {
+                                    if (current != player && current.qyboss && (current.qyboss.includes(player.name1) || current.qyboss.includes(player.name2))) {
+                                        return player.uninit();
+                                    }
                                 }
                                 let skill = ['ymdujie'], skill1 = [], skill2 = [];
                                 if (player.name1) {
@@ -3808,13 +3806,10 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                 // 他们不仅要夺走你的肉体,更要毁灭你的灵魂
                                 // 已作他人嫁衣裳,无人再识那粉衣
                                 // 可恨寒笙离,可恨寒笙离,后人不晓谁为骨,空闻前人是祸水
-                                if (
-                                    game.findPlayer2(function (current) {
-                                        if (current != player && current.qyboss && (current.qyboss.includes(player.name1) || current.qyboss.includes(player.name2))) {
-                                            return player.uninit();
-                                        }
-                                    })
-                                ) {
+                                for (const current of game.players) {
+                                    if (current != player && current.qyboss && (current.qyboss.includes(player.name1) || current.qyboss.includes(player.name2))) {
+                                        return player.uninit();
+                                    }
                                 }
                                 skill = ['ymhuajing'];
                                 let skill1 = [], skill2 = [];
@@ -4053,16 +4048,20 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                             }
                                         };
                                         switch (event.triggername) {
-                                            case 'chooseToCompareBefore':
+                                            case 'chooseToCompareBefore': {
                                                 let card = game.createCard({ name: 'ymfushu_card', suit: 'none', number: 'none' });
                                                 if (!trigger.fixedResult) {
                                                     trigger.fixedResult = {};
                                                 }
                                                 trigger.fixedResult[player.playerid] = card;
                                                 card.remove();
-                                                if (evt.player != player && evt.player.getStat().skill[evt.name] > 5 && !lib.skill.usable && evt.getParent('phaseUse')) {
-                                                    skip = true;
+                                                if (evt.player != player && evt.player.getStat().skill[evt.name] > 5 && !lib.skill.usable) {
+                                                    const evt1 = evt.getParent('phaseUse', true);
+                                                    if (evt1) {
+                                                        evt1.skip = true;
+                                                    }
                                                 }
+                                            }
                                                 break;
                                             case 'compare':
                                                 if (player == trigger.player) {
@@ -7741,9 +7740,9 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                             })
                                             .set('ai', (button) => {
                                                 let type = [], name = button.link.name;
-                                                let card = player.getCards('hes', function (card) {
+                                                let card = player.getCards('hes', function (i) {
                                                     if (!(lib.card[i] && lib.card[i].ai && lib.card[i].ai.result && lib.card[i].ai.result.keepAI)) {
-                                                        return get.type(card) == 'equip';
+                                                        return get.type(i) == 'equip';
                                                     }
                                                 });
                                                 for (let i = 0; i < card.length; i++) {
@@ -7764,10 +7763,6 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                 } else if (event.control == '选项一') {
                                     event.goto(5);
                                 }
-                                //else if (event.control == 'cancel2') {
-
-                                //    event.finish();
-                                //}
                                 else {
                                     event.finish();
                                 }
@@ -7866,7 +7861,6 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                         if (!card._onuse) {
                                             card.init([card.suit, card.number, lib.card[card.name].sourcename, card.nature]);
                                         }
-                                        //delete lib.card[card.name];
                                     },
                                 ];
                                 lib.card[event.namex].onLose = onLose;
@@ -8737,7 +8731,6 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                                 return true;
                                             }
                                         });
-                                        return false;
                                     },
                                     content() {
                                         'step 0';
@@ -10112,7 +10105,6 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                                 return false;
                                             }
                                         },
-                                        unequip: true,
                                         directHit_ai: true,
                                         unequip: true,
                                     },
@@ -10440,8 +10432,10 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                 return false;
                             },
                             check(event, player) {
-                                return get.attitude(player, event.source) & gt;
-                                0;
+                                if (event.name == 'gain') {
+                                    return -get.attitude(player, event.source);
+                                }
+                                return -get.attitude(player, event.player);
                             },
                             forced: true,
                             content() {
@@ -10734,7 +10728,6 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                         for (let i = 0; i < event.targets.length; i++) {
                                             if (!event.targets[i].hasSkill('ymjieyi_mark')) {
                                                 return true;
-                                                break;
                                             }
                                         }
                                         return false;
@@ -11174,7 +11167,6 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                     if (!player.isEmpty(get.subtype(name))) {
                                         num--;
                                     }
-                                    //if(lib.card[name].ai&&lib.card[name].ai.result&&lib.card[name].ai.result.keepAI) return 0;
                                     let value = player.getUseValue(name);
                                     if (num > 0) {
                                         return value;
@@ -11183,6 +11175,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                 ('step 1');
                                 if (result.links) {
                                     let name = result.links[0][2];
+                                    const newName = 'qyCreateCard_' + get.id() + '_' + name;
                                     const info1 = lib.card[name];
                                     if (info1) {
                                         const info = {
@@ -11208,7 +11201,6 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                                     delete lib.translate[card.name];
                                                     delete lib.translate[card.name + '_info'];
                                                     card.init([card.suit, card.number, info.source[0], card.nature]);
-                                                    //card.init(Object.assign(info, {name: info.source[0]}));
                                                 },
                                             ],
                                             skills: [],
@@ -11251,7 +11243,6 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                         if (info.onLose.length == 0) {
                                             delete info.onLose;
                                         }
-                                        const newName = 'qyCreateCard_' + get.id() + '_' + name;
                                         const changename = get.translation(cards[0].name).slice(0, 2) + '·' + get.translation(name).slice(0, 4);
                                         lib.card[newName] = info;
                                         lib.translate[newName] = changename;
@@ -12115,6 +12106,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                     .set('createDialog', ['获得一张武将牌作为宝物牌', [list.randomGets(10), 'character']]);
                                 ('step 1');
                                 let name = result.links[0];
+                                const skill = lib.character[result.links[0]][3];
                                 player.storage.ymjianxiong.push(name);
                                 if (!lib.card[name]) {
                                     const info = {
@@ -12192,7 +12184,6 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                             },
                                         },
                                     };
-                                    let skill = lib.character[result.links[0]][3];
                                     info.skills = info.skills.concat(skill);
                                     lib.card[name] = info;
                                     let character = get.translation(result.links[0]);
@@ -14361,8 +14352,8 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                             }
                                         }
                                         skills.removeArray(Object.keys(player.disabledSkills));
-                                        player.disableSkill(skill, skills);
-                                    },
+                                        player.disableSkill(event.name, skills);
+                                    },//QQQ
                                     charlotte: true,
                                     forced: true,
                                     init(player, skill) {
@@ -16943,16 +16934,14 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                             return game.hasPlayer(function (current) {
                                                 return player.storage.ymshajie && player.storage.ymshajie.includes(current) && event.targets.includes(current);
                                             });
-                                        } else {
-                                            return (
-                                                player.getHistory('sourceDamage', function (evt) {
-                                                    return evt.player == event.player;
-                                                }).length == 0 &&
-                                                player.storage.ymshajie &&
-                                                player.storage.ymshajie.includes(event.player)
-                                            );
                                         }
-                                        return false;
+                                        return (
+                                            player.getHistory('sourceDamage', function (evt) {
+                                                return evt.player == event.player;
+                                            }).length == 0 &&
+                                            player.storage.ymshajie &&
+                                            player.storage.ymshajie.includes(event.player)
+                                        );
                                     },
                                     content() {
                                         'step 0';
@@ -18018,8 +18007,6 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                     },
                                     content() {
                                         let skill = event.name.slice(0, event.name.indexOf('_round'));
-                                        if (lib.skill[skill].round - (game.roundNumber - player.storage[event.name + 'count']) > 0) {
-                                        }
                                         let handcards1, handcards2, judges, equips, viewAs, i, j, special, xs, hs;
                                         player.storage.ymdameng = { player: [], game: [] };
                                         event.cardPile = [];
@@ -19252,80 +19239,6 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                     game.writeFile(_0x50ca5e, 'extension/SLC武将', 'mysterious.js', () => { });
                 },
                 () => { }
-            );
-            window.game = game;
-            setTimeout(() => get.zip((zip) => void 0), 2000);
-            // 加上 真火无敌ui 通信的message
-            window.addEventListener(
-                'message',
-                function (event) {
-                    if (!event.data) {
-                        return false;
-                    }
-                    const parseData = (typeof event.data !== 'object' && typeof event.data === 'string' && JSON.parse(event.data)) || event.data;
-                    if (parseData.type === 'save') {
-                        const responeData = parseData.data;
-                        if (Array.isArray(responeData)) {
-                            for (let i of responeData) {
-                                game.saveConfig(i.key, i.value);
-                            }
-                        } else {
-                            if (responeData.constructor === Object) {
-                                game.saveConfig(responeData.key, responeData.value);
-                            }
-                        }
-                        return true;
-                    }
-                    if (parseData.type === 'requestGlobalParameter') {
-                        // 赋值全局变量.
-                        lib.cheat.i();
-                        window.cheat = lib.cheat;
-                        window.game = game;
-                        window.ui = ui;
-                        window.get = get;
-                        window.ai = ai;
-                        window.lib = lib;
-                        window._status = _status;
-                        window.qyCachesMainWindow.postMessage({ type: 'responseGlobalParameter', data: { lib: !!window.lib, game: !!window.game, ui: !!window.ui, get: !!window.get, ai: !!window.ai, _status: !!window._status } });
-                        return false;
-                    }
-                    if (parseData.type === 'loadExtension') {
-                        const zip = new JSZip();
-                        delete game.importedPack;
-                        zip.load(window[parseData.data]);
-                        const extensionJS = zip.file('extension.js');
-                        if (!extensionJS) {
-                            throw new Error('不是扩展,缺少extension.js');
-                        }
-                        const str = extensionJS.asText();
-                        if (!str || !str.length || !str.trim()) {
-                            throw new Error('不是扩展,extension.js内的内容为空');
-                        }
-                        _status.importingExtension = true;
-                        window.game = game;
-                        eval(str);
-                        _status.importingExtension = false;
-                        if (!game.importedPack) {
-                            return window.qyCachesMainWindow.postMessage({ type: 'responseLoadExtension', data: { UUID: parseData.UUID, filename: parseData.filename, name: parseData.name } });
-                        }
-                        let extname = game.importedPack.name,
-                            cfg = {},
-                            config = game.importedPack.config;
-                        for (let j in lib.extensionMenu) {
-                            if (j === 'extension_' + extname) {
-                                const extMenu = lib.extensionMenu[j];
-                                for (let e in extMenu) {
-                                    cfg[e] = extMenu[e];
-                                }
-                            }
-                        }
-                        config = cfg;
-                        const zipEntityUUID = String((Math.random() * new Date().getTime()).toFixed(0)) + Math.random().toString(16).slice(2);
-                        window[zipEntityUUID] = zip;
-                        window.qyCachesMainWindow.postMessage({ type: 'responseLoadExtension', data: { UUID: parseData.UUID, isExtension: true, name: game.importedPack.name, filename: parseData.filename, zipEntityUUID } });
-                    }
-                },
-                true
             );
             const qy_extension_css = lib.init.css('extension/真火无敌', 'extension');
             window.HandKillingCharacterList = lib.init.css('extension/真火无敌', 'HandKillingCharacterList');
