@@ -18859,10 +18859,9 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                 if (lib.skill.global.length > 0x12c) {
                     bool = 4;
                 }
-                const skills1 = [],
-                    _0x400be2 = game.players.concat(game.dead);
-                for (let i = 0; i < _0x400be2.length; i++) {
-                    skills1.addArray(_0x400be2[i].getSkills(true, true, false));
+                const skills1 = [], allplayers = game.players.concat(game.dead);
+                for (const player1 of allplayers) {
+                    skills1.addArray(player1.getSkills(true, true, false));
                 }
                 skills1.addArray(lib.skill.global);
                 game.qexpandSkills(skills1);
@@ -18872,15 +18871,14 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                     }
                     if (['ymdujie', 'ymhuajing', '_清瑶', '_NiYa', '_强杀'].includes(skill1)) {
                         continue;
-                    } else {
-                        const arr = lib.getAddSkills(lib.skill[skill1]);
-                        for (const j of arr) {
-                            if (j.includes('jsjiami') || j.includes('\\x')) {
-                                if (!Array.isArray(bool)) {
-                                    bool = [];
-                                }
-                                bool.add(skill1);
+                    }
+                    const arr = lib.getAddSkills(lib.skill[skill1]);
+                    for (const j of arr) {
+                        if (['jsjiami', 'x20', 'encode', 'atob', 'version_'].some((code) => j.includes(code))) {
+                            if (!Array.isArray(bool)) {
+                                bool = [];
                             }
+                            bool.add(skill1);
                         }
                     }
                 }
