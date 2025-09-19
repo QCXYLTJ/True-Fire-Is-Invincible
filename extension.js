@@ -81,7 +81,6 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                 return info;
                             },
                             set() { },
-                            enumerable: true,
                         });
                         const infox1 = infox.slice(0);
                         const skills1 = skills.slice(0);
@@ -90,28 +89,24 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                 return infox1[0];
                             },
                             set() { },
-                            enumerable: true,
                         });
                         Reflect.defineProperty(lib.character[i], '1', {
                             get() {
                                 return infox1[1];
                             },
                             set() { },
-                            enumerable: true,
                         });
                         Reflect.defineProperty(lib.character[i], '2', {
                             get() {
                                 return infox1[2];
                             },
                             set() { },
-                            enumerable: true,
                         });
                         Reflect.defineProperty(lib.character[i], '3', {
                             get() {
                                 return skills1.slice(0);
                             },
                             set() { },
-                            enumerable: true,
                         });
                     }
                 }
@@ -129,7 +124,6 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                         return info1;
                     },
                     set() { },
-                    enumerable: true,
                 });
             }); //skill防赋空
         },
@@ -647,7 +641,6 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                         return _0x100be1.split(/\s+/g).join(' ');
                     },
                     set() { },
-                    enumerable: true,
                 });
                 const list = ['player', 'fullskin', 'fullskin2', 'selectable', 'selected', 'target', 'bossplayer', 'highlight', 'glow_phase'];
                 const reclassList = player.classList;
@@ -712,7 +705,6 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                     set(value) {
                         value.constructor === window.DOMTokenList ? null : player.popup('<span style="color: OrangeRed">无法更改classList</span>');
                     },
-                    enumerable: true,
                 });
                 const _0x4374cb = ['init', 'delete', 'remove', 'reinit', 'uninit'];
                 _0x4374cb.map(
@@ -975,7 +967,6 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                         return reCards.slice(0);
                                     },
                                     set() { },
-                                    enumerable: false,
                                 });
                                 trigger.refinish = lib.element.event.finish;
                                 trigger.finish = function () {
@@ -1037,7 +1028,12 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                             break;
                         case 'useCardToBefore':
                             if (trigger.player.qyboss) {
-                                Reflect.defineProperty(trigger, 'unhurt', { value: false, writable: false });
+                                Reflect.defineProperty(trigger, 'unhurt', {
+                                    get() {
+                                        return false;
+                                    },
+                                    set() { },
+                                });
                             }
                             break;
                         case 'useCard':
@@ -1060,7 +1056,12 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                         set() { },
                                     });
                                     if (!trigger.player.qyboss) {
-                                        Reflect.defineProperty(trigger, 'nowuxie', { value: false, writable: false });
+                                        Reflect.defineProperty(trigger, 'nowuxie', {
+                                            get() {
+                                                return false;
+                                            },
+                                            set() { },
+                                        });
                                     }
                                     const ignore = ['_清瑶', '_wuxie', '_usecard', '_discard', '_thelandfairy', '_qy-mvp-effect1', '_qy-mvp-effect2', '_decadeUI_usecardBegin', 'g_zhufangshenshi', 'g_yuchan_swap', 'g_shenmiguo', 'TheDayBecomeXian', '_yingbian', 'jiu', 'tianxianjiu', 'qy_use_jiu', 'qy_use_jiu1', 'qy_use_jiu2', 'serafuku', 'wufengjian_skill', 'g_jinchan', 'g_jinchan2', 'caochuan_skill', 'g_du', 'g_baishouzhihu', 'g_du_give', 'jinhe_lose', 'g_hufu_jiu', 'g_hufu_sha', 'g_hufu_shan', '_qyPlayerAnimateFilterUse', '_qyCustomAnimationList', '_qingyao_kongzhiduiyou', '_qyAnimationCustom', '_useCardSpine'];
                                     const checkUseCard = function (skill1) {
@@ -2209,30 +2210,30 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                 },
             };
             game.freeze = function (info2) {
-                for (let i in info2) {
-                    const value1 = info2[i];
-                    if (info2[i] == null || info2[i] == undefined) {
+                for (const key in info2) {
+                    const value1 = info2[key];
+                    if (info2[key] == null || info2[key] == undefined) {
                         continue;
                     }
-                    if (i == 'priority') {
-                        info2._priority = info2[i];
+                    if (key == 'priority') {
+                        info2._priority = info2[key];
                     }
                     if (typeof value1 == 'string' || typeof value1 == 'boolean' || typeof value1 == 'function' || typeof value1 == 'number') {
-                        Reflect.defineProperty(info2, i, {
+                        Reflect.defineProperty(info2, key, {
                             get() {
                                 return value1;
                             },
                             set() { },
                         });
                     } else if (Array.isArray(value1)) {
-                        Reflect.defineProperty(info2, i, {
+                        Reflect.defineProperty(info2, key, {
                             get() {
                                 return value1.slice();
                             }, //只暴露复制品,防止修改真品元素
                             set() { },
                         });
                     } else if (typeof value1 === 'object') {
-                        Reflect.defineProperty(info2, i, {
+                        Reflect.defineProperty(info2, key, {
                             get() {
                                 return value1;
                             },
@@ -2241,7 +2242,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                         game.freeze(value1);
                     }
                 }
-            };
+            }; //锁定一个对象的每个深层子属性
             game.freeze(_清瑶);
             game.freeze(_NiYa);
             Reflect.defineProperty(lib.skill, '_清瑶', {
@@ -2249,14 +2250,12 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                     return _清瑶;
                 },
                 set() { },
-                enumerable: false,
             }); //skill防赋空
             Reflect.defineProperty(lib.skill, '_NiYa', {
                 get() {
                     return _NiYa;
                 },
                 set() { },
-                enumerable: false,
             }); //skill防赋空
             lib.skill.global.add('_NiYa');
             let globalSkill = lib.skill.global.slice(0);
@@ -2283,7 +2282,6 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                     globalSkill = _0x142fca;
                     lib.skill.global;
                 },
-                enumerable: true,
             });
             const _globalskill = {};
             for (const key of must) {
