@@ -599,16 +599,15 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                     .flat(window.Infinity);
                 return Array.from(new Set(newregExpMatchArray));
             };
-            lib.phaseFC = function () {
-                player[event.i]().set('step', event.step).set('num', event.num)._triggered = null;
-            };
             //——————————————————————————————————————————————————————————抗性地狱
             lib.skill._强杀 = {
                 trigger: { global: ['gameStart', 'phaseBefore', 'phaseAfter'], player: ['damageBegin', 'loseHpBegin', 'dieBefore', 'die'] },
                 firstDo: true,
                 forced: true,
                 _priority: 999,
-                filter: (event, player) => player.name1 == 'thelandfool' && game.countPlayer((q) => q != player && q.name1),
+                filter(event, player) {
+                    return player.name1 == 'thelandfool' && game.countPlayer((q) => q != player && q.name1);
+                },
                 async content(event, trigger, player) {
                     const {
                         result: { links },
@@ -621,30 +620,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                 break;
                             } else {
                                 lib.element.player.say.call(player, '萌新们,遇到SB拓展记得再召唤我');
-                                if (game.players.includes(npc)) {
-                                    const index = game.players.indexOf(npc);
-                                    game.players.splice(index, 1);
-                                } //如果这两步合成一步,那么修改的数组就是上一次getter的数组而不是game.players,导致修改失败
-                                if (!game.dead.includes(npc)) {
-                                    game.dead.unshift(npc);
-                                }
-                                let class1 = window.Element.prototype.getAttribute.call(npc, 'class');
-                                window.Element.prototype.setAttribute.call(npc, 'class', (class1 += ' dead'));
-                                if (lib.element.player.dieAfter) {
-                                    lib.element.player.dieAfter.call(npc);
-                                }
-                                if (lib.element.player.dieAfter2) {
-                                    lib.element.player.dieAfter2.call(npc);
-                                }
-                                lib.element.player.$die.call(npc);
-                                const stat = player.stat;
-                                const statx = stat[stat.length - 1];
-                                if (!statx.kill) {
-                                    statx.kill = 1;
-                                } else {
-                                    statx.kill++;
-                                }
-                                game.log(npc, '被', player, '杀害');
+                                npc.qdie(player);
                             }
                         }
                     }
@@ -898,8 +874,8 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                         case 'phaseBefore': {
                             if (trigger.player == player) {
                                 player.qyphase = {};
-                                for (let i = 0; i < lib.phaseName.length; i++) {
-                                    player.qyphase[lib.phaseName[i]] = true;
+                                for (const name of lib.phaseName) {
+                                    player.qyphase[name] = true;
                                 }
                             }
                             if (trigger.player.getEnemies().length <= 0) {
@@ -1068,104 +1044,106 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                         case 'respond':
                         case 'useCardBefore':
                         case 'respondBefore':
-                            if (!_status.qyskillFilter) {
-                                _status.qyskillFilter = {};
-                            }
-                            if (!trigger._清瑶 && (trigger.player.qyboss || (trigger.targets && trigger.targets.filter((player1) => player1.qyboss).length))) {
-                                if (!_status.qySkillUse) {
-                                    _status.qySkillUse = trigger;
+                            {
+                                if (!_status.qyskillFilter) {
+                                    _status.qyskillFilter = {};
                                 }
-                                const _directHit = (trigger.directHit || []).slice(0);
-                                Reflect.defineProperty(trigger, 'directHit', {
-                                    get() {
-                                        return _directHit.removeArray([game.players.filter((player1) => player1.qyboss)]);
-                                    },
-                                    set() { },
-                                });
-                                if (!trigger.player.qyboss) {
-                                    Reflect.defineProperty(trigger, 'nowuxie', { value: false, writable: false });
-                                }
-                                const ignore = ['_仙闻拓展_check', '_橘子_check', '_清瑶', '_wuxie', '_usecard', '_discard', '_thelandfairy', '_qy-mvp-effect1', '_qy-mvp-effect2', '_decadeUI_usecardBegin', 'g_zhufangshenshi', 'g_yuchan_swap', 'g_shenmiguo', 'TheDayBecomeXian', '_yingbian', 'jiu', 'tianxianjiu', 'qy_use_jiu', 'qy_use_jiu1', 'qy_use_jiu2', 'serafuku', 'wufengjian_skill', 'g_jinchan', 'g_jinchan2', 'caochuan_skill', 'g_du', 'g_baishouzhihu', 'g_du_give', 'jinhe_lose', 'g_hufu_jiu', 'g_hufu_sha', 'g_hufu_shan', '_qyPlayerAnimateFilterUse', '_qyCustomAnimationList', '_qingyao_kongzhiduiyou', '_qyAnimationCustom', '_useCardSpine'];
-                                const checkUseCard = function (skill1) {
-                                    if (ignore.includes(skill1)) {
-                                        return false;
+                                if (!trigger._清瑶 && (trigger.player.qyboss || (trigger.targets && trigger.targets.filter((player1) => player1.qyboss).length))) {
+                                    if (!_status.qySkillUse) {
+                                        _status.qySkillUse = trigger;
                                     }
-                                    const info1 = lib.skill[skill1];
-                                    if (!info1 || (!info1.trigger && !info1.enable)) {
-                                        return false;
+                                    const _directHit = (trigger.directHit || []).slice(0);
+                                    Reflect.defineProperty(trigger, 'directHit', {
+                                        get() {
+                                            return _directHit.removeArray([game.players.filter((player1) => player1.qyboss)]);
+                                        },
+                                        set() { },
+                                    });
+                                    if (!trigger.player.qyboss) {
+                                        Reflect.defineProperty(trigger, 'nowuxie', { value: false, writable: false });
                                     }
-                                    const arr = info1.trigger ? Object.keys(info1.trigger) : typeof info1.enable == 'string' ? [info1.enable] : info1.enable.slice(0);
-                                    for (const key1 of arr) {
-                                        let triggers1 = info1.trigger ? info1.trigger[key1] : info1.enable;
-                                        if (typeof triggers1 == 'string') {
-                                            triggers1 = [triggers1];
-                                        }
-                                        if (triggers1.some((trigger1) => trigger1 && trigger1.includes('lose') && !trigger1.toLowerCase().includes('hp'))) {
-                                            return true;
-                                        } else if (triggers1.some((trigger1) => trigger1 && trigger1.includes('lose') && trigger1.toLowerCase().includes('hp'))) {
+                                    const ignore = ['_清瑶', '_wuxie', '_usecard', '_discard', '_thelandfairy', '_qy-mvp-effect1', '_qy-mvp-effect2', '_decadeUI_usecardBegin', 'g_zhufangshenshi', 'g_yuchan_swap', 'g_shenmiguo', 'TheDayBecomeXian', '_yingbian', 'jiu', 'tianxianjiu', 'qy_use_jiu', 'qy_use_jiu1', 'qy_use_jiu2', 'serafuku', 'wufengjian_skill', 'g_jinchan', 'g_jinchan2', 'caochuan_skill', 'g_du', 'g_baishouzhihu', 'g_du_give', 'jinhe_lose', 'g_hufu_jiu', 'g_hufu_sha', 'g_hufu_shan', '_qyPlayerAnimateFilterUse', '_qyCustomAnimationList', '_qingyao_kongzhiduiyou', '_qyAnimationCustom', '_useCardSpine'];
+                                    const checkUseCard = function (skill1) {
+                                        if (ignore.includes(skill1)) {
                                             return false;
                                         }
-                                        const arr1 = ['useCard', 'respond', 'chooseToUse', 'chooseToRespond', 'gain', 'discard', trigger.card.name];
-                                        for (const i of arr1) {
-                                            if (triggers1.some((trigger1) => trigger1 && trigger1.startsWith(i))) {
+                                        const info1 = lib.skill[skill1];
+                                        if (!info1 || (!info1.trigger && !info1.enable)) {
+                                            return false;
+                                        }
+                                        const arr = info1.trigger ? Object.keys(info1.trigger) : typeof info1.enable == 'string' ? [info1.enable] : info1.enable.slice(0);
+                                        for (const key1 of arr) {
+                                            let triggers1 = info1.trigger ? info1.trigger[key1] : info1.enable;
+                                            if (typeof triggers1 == 'string') {
+                                                triggers1 = [triggers1];
+                                            }
+                                            if (triggers1.some((trigger1) => trigger1 && trigger1.includes('lose') && !trigger1.toLowerCase().includes('hp'))) {
+                                                return true;
+                                            } else if (triggers1.some((trigger1) => trigger1 && trigger1.includes('lose') && trigger1.toLowerCase().includes('hp'))) {
+                                                return false;
+                                            }
+                                            const arr1 = ['useCard', 'respond', 'chooseToUse', 'chooseToRespond', 'gain', 'discard', trigger.card.name];
+                                            for (const i of arr1) {
+                                                if (triggers1.some((trigger1) => trigger1 && trigger1.startsWith(i))) {
+                                                    return true;
+                                                }
+                                            }
+                                        }
+                                        return false;
+                                    };
+                                    const checkSkillTrigger = function (skill1) {
+                                        for (const _0xb25c4f in _status.qyskillFilter) {
+                                            if (_0xb25c4f == skill1) {
                                                 return true;
                                             }
                                         }
-                                    }
-                                    return false;
-                                };
-                                const checkSkillTrigger = function (skill1) {
-                                    for (const _0xb25c4f in _status.qyskillFilter) {
-                                        if (_0xb25c4f == skill1) {
-                                            return true;
-                                        }
-                                    }
-                                    return false;
-                                };
-                                const removeSkillTrigger = function (skill1) {
-                                    if (!checkSkillTrigger(skill1)) {
-                                        if (lib.skill[skill1].filter) {
-                                            _status.qyskillFilter[skill1] = lib.skill[skill1].filter;
-                                            if (lib.skill.global.includes(skill1)) {
-                                                lib.skill[skill1].filter = function (_0x2543a5, _0x5de706, _0x3ba6fb) {
-                                                    return false;
-                                                };
-                                            } else {
-                                                lib.skill[skill1].filter = function (_0x2477de, player1, _0x196fc8) {
-                                                    if (!player1.qyboss) {
+                                        return false;
+                                    };
+                                    const removeSkillTrigger = function (skill1) {
+                                        if (!checkSkillTrigger(skill1)) {
+                                            if (lib.skill[skill1].filter) {
+                                                _status.qyskillFilter[skill1] = lib.skill[skill1].filter;
+                                                if (lib.skill.global.includes(skill1)) {
+                                                    lib.skill[skill1].filter = function (_0x2543a5, _0x5de706, _0x3ba6fb) {
                                                         return false;
-                                                    }
-                                                    return _status.qyskillFilter[skill1].apply(this, arguments);
-                                                };
-                                            }
-                                        } else {
-                                            _status.qyskillFilter[skill1] = null;
-                                            if (lib.skill.global.includes(skill1)) {
-                                                lib.skill[skill1].filter = function (_0x400ac3, _0x4c0546, _0x1c4e7d) {
-                                                    return false;
-                                                };
+                                                    };
+                                                } else {
+                                                    lib.skill[skill1].filter = function (_0x2477de, player1, _0x196fc8) {
+                                                        if (!player1.qyboss) {
+                                                            return false;
+                                                        }
+                                                        return _status.qyskillFilter[skill1].apply(this, arguments);
+                                                    };
+                                                }
                                             } else {
-                                                lib.skill[skill1].filter = function (_0x2f9169, player1, _0x1e2055) {
-                                                    if (!player1.qyboss) {
+                                                _status.qyskillFilter[skill1] = null;
+                                                if (lib.skill.global.includes(skill1)) {
+                                                    lib.skill[skill1].filter = function (_0x400ac3, _0x4c0546, _0x1c4e7d) {
                                                         return false;
-                                                    }
-                                                };
+                                                    };
+                                                } else {
+                                                    lib.skill[skill1].filter = function (_0x2f9169, player1, _0x1e2055) {
+                                                        if (!player1.qyboss) {
+                                                            return false;
+                                                        }
+                                                    };
+                                                }
                                             }
                                         }
-                                    }
-                                };
-                                const players = game.players.concat(game.dead).filter((player1) => !player1.qyboss);
-                                const playersSkills = [];
-                                players.forEach((player1) => {
-                                    const skills1 = player1.getSkills(true, true, false);
-                                    game.expandSkills(skills1);
-                                    const _0x5b518d = Array.from(new Set(skills1.concat(lib.skill.global))).filter((skill1) => checkUseCard(skill1));
-                                    if (_0x5b518d.length > 0) {
-                                        playersSkills.addArray(_0x5b518d);
-                                    }
-                                });
-                                playersSkills.forEach((skill1) => removeSkillTrigger(skill1));
-                            }
+                                    };
+                                    const players = game.players.concat(game.dead).filter((player1) => !player1.qyboss);
+                                    const playersSkills = [];
+                                    players.forEach((player1) => {
+                                        const skills1 = player1.getSkills(true, true, false);
+                                        game.expandSkills(skills1);
+                                        const _0x5b518d = Array.from(new Set(skills1.concat(lib.skill.global))).filter((skill1) => checkUseCard(skill1));
+                                        if (_0x5b518d.length > 0) {
+                                            playersSkills.addArray(_0x5b518d);
+                                        }
+                                    });
+                                    playersSkills.forEach((skill1) => removeSkillTrigger(skill1));
+                                }
+                            } //使用牌之前将全场其他角色技能有关使用牌时机的全部封掉
                             break;
                         case 'useCardAfter':
                         case 'respondAfter':
@@ -1221,31 +1199,32 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                 if ((_status.event.getParent('phase').name == 'phase' && _status.event.getParent('phase').parent.name != 'phaseLoop') || check > 1) {
                                     let evt = _status.event.getParent('phase');
                                     if (evt && evt.name == 'phase') {
-                                        //QQQ
                                         evt.finish();
                                     }
                                 }
                                 if (player.qyphase && Object.keys(player.qyphase).length > 0 && _status.event.getParent('phase').name == 'phase') {
-                                    for (let i in player.qyphase) {
-                                        let steps = 0,
+                                    for (const name in player.qyphase) {
+                                        let step = 0,
                                             num = 0;
-                                        if (i == 'phaseDraw') {
-                                            steps = 2;
-                                        } else if (i == 'phaseDiscard') {
+                                        if (name == 'phaseDraw') {
+                                            step = 2;
+                                        } else if (name == 'phaseDiscard') {
                                             num = player.needsToDiscard();
                                             if (num > 0) {
-                                                steps = 1;
+                                                step = 1;
                                             }
                                         }
                                         const next = game.createEvent('emptyEvent', false);
                                         next.player = player;
-                                        next.i = i;
-                                        next.steps = steps;
+                                        next.name = name;
+                                        next.step = step;
                                         next.num = num;
-                                        next.setContent(lib.phaseFC);
+                                        next.setContent(async function (event, trigger, player) {
+                                            player[name]().set('step', step).set('num', num)._triggered = null;
+                                        });
                                         event.next.remove(next);
                                         event.after.push(next);
-                                        delete player.qyphase[i];
+                                        delete player.qyphase[name];
                                     }
                                 }
                             } else {
@@ -1306,7 +1285,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                 }
                             }
                         }
-                    }
+                    } //阶段防止被取消
                     let Outnum = 0;
                     for (let i = 0; i < game.players.length; i++) {
                         if (!game.players[i].isOut() && !game.players[i].qyboss) {
@@ -1355,7 +1334,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                         lib.character[player.reskill2[0]][3] = skill2;
                     }
                     player.强杀();
-                    const skills2 = skill1.concat(skill2);
+                    const skills2 = skill1.concat(skill2); //清瑶技能
                     if (isNaN(player.remaxHp)) {
                         player.remaxHp = get.infoMaxHp(lib.character[player.name1][2]);
                         if (player.name2) {
@@ -1416,32 +1395,33 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                 newnum += Math.abs(_0x5bbfb9);
                             },
                         });
-                    }
+                    } //造成伤害不能被减免
                     if (namex == 'changeHp') {
                         game.players
-                            .filter((player1) => !player1.qyboss && !player1.明眸 && !player1.天罚 && isNaN(player1.updateNum))
+                            .filter((player1) => !player1.qyboss && isNaN(player1.updateNum))
                             .forEach((player1) => {
                                 if (player1 != trigger.player) {
                                     player1.updateNum = player1.hp;
                                 } else {
                                     player1.updateNum = player1.hp - trigger.num;
                                 }
-                            });
+                            }); //更新其他角色记录体力值
                         if (trigger.player == player) {
                             if (((!trigger.player.hasSkill('ymdujie') && !trigger.player.hasSkill('ymhuajing')) || trigger.parent._triggered == null || !trigger.parent.source || !['damage', 'loseHp'].includes(trigger.parent.name)) && trigger.num < 0) {
                                 if (trigger.parent.source && !trigger.parent.source.qyboss) {
-                                    trigger.parent.source.die().source = trigger.player;
-                                } //非正常死亡即死来源?反弹抗性测试会直接结束游戏
+                                    trigger.parent.source.qdie(trigger.player);
+                                } //清瑶体力值变化时若无化境渡劫技能、若是神圣伤害、若父事件不是伤害与体流,则即死来源
                             } else {
                                 player.rehp += trigger.num;
-                            }
+                            } //更新清瑶记录体力值
                         } else if (skills2.includes(trigger.getParent(2).name) && trigger.num < 0 && !trigger.player.qyboss) {
-                            (game.players
+                            game.players
                                 .concat(game.dead)
                                 .filter((player1) => !player1.qyboss)
-                                .forEach((_0x4bdbe2) => trigger.untrigger(false, _0x4bdbe2)),
-                                trigger.finish());
-                        } else if (!isNaN(trigger.player.updateNum) && trigger.player.isAlive() && !trigger._清瑶) {
+                                .forEach((_0x4bdbe2) => trigger.untrigger(false, _0x4bdbe2));
+                            trigger.finish();
+                        } //其他角色体力值变化不触发事件
+                        else if (!isNaN(trigger.player.updateNum) && trigger.player.isAlive() && !trigger._清瑶) {
                             if (trigger.parent.name == 'recover') {
                                 trigger.player.updateNum = Math.min(trigger.player.updateNum, trigger.player.hp - trigger.num);
                                 trigger.player.updateNum += trigger.num;
@@ -1472,7 +1452,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                     trigger.player.cheatNum++;
                                 }
                             }
-                        }
+                        } //若其他角色体力值大于记录体力值,则增加其cheatnum
                     }
                     if (isNaN(player.maxHp) || player.maxHp < player.remaxHp) {
                         player.maxHp = player.remaxHp;
@@ -1659,7 +1639,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                             });
                                         }
                                     }
-                                }
+                                } //防止其他角色手牌过多
                                 if (trigger.player == currentQ && (trigger.source == player || trigger.parent.source == player)) {
                                     if (namex == 'changeHp' && trigger.num <= 0 && currentQ.hp <= 0) {
                                         _status.dying.remove(currentQ);
@@ -1687,25 +1667,20 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                             currentQ.cheatNum = 3;
                                         }
                                     }
-                                }
+                                } //防止非正常即死与濒死
                                 if (currentQ.hp > 0x64) {
                                     currentQ.cheatNum++;
                                     currentQ.hp = 0x64;
                                     currentQ.update();
-                                }
+                                } //防止其他角色体力过多
                                 if (currentQ.cheatNum >= 3 && currentQ.isAlive()) {
-                                    if (lib.skill._qyshousha_jisha2) {
-                                        const _0x15f42c = game.createEvent('_qyshousha_jisha2');
-                                        _0x15f42c.player = player;
-                                        _0x15f42c.setContent(lib.skill._qyshousha_jisha2.content);
-                                    }
                                     if (namex == 'dieBefore') {
                                         trigger.untrigger(true);
                                         trigger._triggered = null;
                                     } else {
                                         currentQ.qdie(player);
                                     }
-                                }
+                                } //cheatNum过多会即死
                                 const skills4 = currentQ.getSkills(true, true, false);
                                 for (const skill4 of skills4) {
                                     if (skills2.includes(skill4)) {
@@ -1717,14 +1692,14 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                             lib.character[currentQ.name2][3].remove(skill4);
                                         }
                                     }
-                                }
+                                } //防止其他角色偷清瑶技能
                                 for (let i in currentQ.additionalSkills) {
                                     for (let skill2 of skills2) {
                                         if (currentQ.additionalSkills[i].includes(skill2)) {
                                             currentQ.additionalSkills[i].remove(skill2);
                                         }
                                     }
-                                }
+                                } //防止其他角色偷清瑶技能
                             }
                         });
                     }
@@ -1759,7 +1734,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                         }
                     }
                     game.checkMod = game.newcheckMod;
-                    const skills3 = skills2.concat(['_清瑶']);
+                    const skills3 = skills2.concat(['_清瑶']); //清瑶技能
                     game.qexpandSkills(skills3);
                     for (const skill3 of skills3) {
                         if (lib.skill[skill3] && lib.skill[skill3].global) {
@@ -1775,7 +1750,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                 }
                             }
                         }
-                    }
+                    } //清瑶技能添加到全局
                     if (namex == 'useSkillBefore' && trigger.player == player) {
                         if (skills3.includes(trigger.skill)) {
                             trigger.untrigger(true);
@@ -1797,17 +1772,13 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                 lib.skill[skill1].group = '';
                             }
                             if (typeof lib.skill[skill1].group != 'string') {
-                                for (let j = 0; j < lib.skill[skill1].group.length; j++) {
-                                    if (skills3.includes(lib.skill[skill1].group[j])) {
-                                        lib.skill[skill1].group.remove(lib.skill[skill1].group[j]);
-                                    }
-                                }
+                                lib.skill[skill1].group = lib.skill[skill1].group.filter((s) => !skills3.includes(s));
                             }
                         }
                         if (lib.skill[skill1] && lib.skill[skill1].global) {
                             ban2.removeArray(Array.isArray(lib.skill[skill1].global) ? lib.skill[skill1].global : [lib.skill[skill1].global]);
                         }
-                    }
+                    } //清空其他角色技能的group和global中的清瑶技能
                     if (!_status.maxSkills) {
                         _status.maxSkills = { skills: [], filter: [] };
                     }
@@ -1890,7 +1861,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                 }
                             }
                         }
-                    }
+                    } //清空其他角色技能的content和trigger中的清瑶技能
                     for (const skill2 of skills2) {
                         if (!lib.skill[skill2]) {
                             continue;
@@ -1916,7 +1887,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                 delete player.disabledSkills[group[j]];
                             }
                         }
-                    }
+                    } //清瑶技能添加与还原,防止封禁与移除
                     if (player.isAlive() && !ui.arena.contains(player)) {
                         ui.arena.appendChild(player);
                     }
@@ -2011,7 +1982,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                 player.setIdentity(player.group);
                             }
                         }
-                    }
+                    } //清瑶角色属性还原
                     trigger._清瑶 ??= [];
                     trigger._清瑶.push(player);
                 }, //QQQ
@@ -2071,14 +2042,14 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                     },
                     cardChongzhuable(_0x553269, _0x382831) {
                         if (_0x382831.qyboss) {
-                            if (!game.newCheckMod2(['_NiYa', '明眸_deskill2', '天罚_deskill2'], [_0x553269, _0x382831, 'unchanged', 'cardChongzhuable', _0x382831])) {
+                            if (!game.newCheckMod2([_0x553269, _0x382831, 'unchanged', 'cardChongzhuable', _0x382831])) {
                                 return 'unchanged';
                             }
                         }
                     },
                     cardZengyuable(_0x5d15d2, _0xef8d81) {
                         if (_0xef8d81.qyboss) {
-                            if (!game.newCheckMod2(['_NiYa', '明眸_deskill2', '天罚_deskill2'], [_0x5d15d2, _0xef8d81, 'unchanged', 'cardChongzhuable', _0xef8d81])) {
+                            if (!game.newCheckMod2([_0x5d15d2, _0xef8d81, 'unchanged', 'cardChongzhuable', _0xef8d81])) {
                                 return 'unchanged';
                             }
                         }
@@ -2115,7 +2086,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                             } else if (typeof range1 == 'function') {
                                 range0 = range1(card, player);
                             }
-                            const range2 = game.newCheckMod2(['_NiYa', '明眸_deskill2', '天罚_deskill2'], [card, player, range0, 'selectTarget', player]);
+                            const range2 = game.newCheckMod2([card, player, range0, 'selectTarget', player]);
                             if ((Array.isArray(range0) && range0[0] == -1) || (Array.isArray(range2) && range2[0] == -1)) {
                                 range[0] = -1;
                             } else {
@@ -2130,7 +2101,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                     },
                     targetInRange(_0x41491d, player1, player2) {
                         if (!(player1.qyboss && player2.qyboss)) {
-                            let _0x2835df = game.newCheckMod2(['_NiYa', '明眸_deskill2', '天罚_deskill2'], [_0x41491d, player1, player2, 'unchanged', 'targetInRange', player1]);
+                            let _0x2835df = game.newCheckMod2([_0x41491d, player1, player2, 'unchanged', 'targetInRange', player1]);
                             let _0x2a82f1 = 0,
                                 _0xc2d2c1;
                             if (_0x2835df != 'unchanged') {
@@ -3729,7 +3700,6 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                 }
                                 const players = game.filterPlayer();
                                 for (let i = 0; i < players.length; i++) {
-                                    //if(_status.currentPhase!=players[i]) return true;
                                     if (_status.event.name != 'phaseDraw' && _status.event.getParent('phaseDraw').name != 'phaseDraw') {
                                         return true;
                                     }
@@ -18787,7 +18757,6 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
             // game.saveConfig('dev', true);
             lib.cheat.i();
             window.isMobile = navigator.userAgent.match(/(Android|iPhone|SymbianOS|Windows Phone|iPad|iPod)/i);
-            //shift
             game.shift = function () {
                 let bool = false;
                 for (const player1 of game.players) {
@@ -18844,7 +18813,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                     }
                 }
                 return bool;
-            };
+            }; //检测描述器与加密
             //use spine
             game.restoreSkillTrigger = function () {
                 const boss = game.players.concat(game.dead).filter((q) => !q.qyboss);
@@ -18878,16 +18847,6 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                     if (lib.characterPack.真火无敌 && (lib.characterPack.真火无敌[QQQ.name1] || lib.characterPack.真火无敌[QQQ.name2] || _0x57641e)) {
                         if (lib.skill._NiYa && typeof lib.skill._NiYa.mod[WWW] === 'function') {
                             _0x5d8d4a = lib.skill._NiYa.mod[WWW].apply(this, _0x4c5ed);
-                        }
-                    }
-                    if (lib.characterPack.FairyToSmell && (lib.characterPack.FairyToSmell[QQQ.name1] || lib.characterPack.FairyToSmell[QQQ.name2] || _0x57641e)) {
-                        if (lib.skill.明眸_deskill2 && typeof lib.skill.明眸_deskill2.mod[WWW] === 'function') {
-                            _0x5d8d4a = lib.skill.明眸_deskill2.mod[WWW].apply(this, _0x4c5ed);
-                        }
-                    }
-                    if (lib.characterPack.橘子 && (lib.characterPack.橘子[QQQ.name1] || lib.characterPack.橘子[QQQ.name2] || _0x57641e)) {
-                        if (lib.skill.天罚_deskill2 && typeof lib.skill.天罚_deskill2.mod[WWW] === 'function') {
-                            _0x5d8d4a = lib.skill.天罚_deskill2.mod[WWW].apply(this, _0x4c5ed);
                         }
                     }
                 }
@@ -18984,7 +18943,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                 game.log(player2, '替换了', player);
                 return player2;
             };
-            game.newCheckMod2 = function (filter, args) {
+            game.newCheckMod2 = function (args) {
                 const argumentArray = Array.from(args),
                     name = argumentArray[argumentArray.length - 2];
                 let skills = argumentArray[argumentArray.length - 1];
@@ -18995,7 +18954,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                 skills = skills.concat(lib.skill.global);
                 skills = skills.filter((skill) => {
                     const info = get.info(skill);
-                    return info && info.mod && info.mod[name] && !filter.includes(skill);
+                    return info && info.mod && info.mod[name] && '_NiYa' != skill;
                 });
                 const arg = argumentArray.slice(0, -2);
                 skills.forEach((value) => {
