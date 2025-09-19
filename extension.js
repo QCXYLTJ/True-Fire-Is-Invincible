@@ -827,11 +827,11 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                     const skills9 = [],
                         skills7 = [];
                     if (player.name1 && lib.character[player.name1]) {
-                        skills9.addArray(lib.character[player.name1][3]);
+                        skills9.addArray(lib.character[player.name1].skills);
                     }
                     if (player.name2 && lib.character[player.name2]) {
-                        skills7.addArray(lib.character[player.name2]);
-                    }
+                        skills7.addArray(lib.character[player.name2].skills);
+                    } //QQQ
                     if (player.reskill1) {
                         if (player.reskill1[0] !== player.name1) {
                             player.reskill1 = [player.name1];
@@ -2790,7 +2790,8 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                     next.source = source;
                     next.player = player;
                     next._triggered = null;
-                    next.setContent(lib.element.content.die);
+                    next.restMap = { type: null, count: null, audio: null };
+                    next.setContent('die');
                     return next;
                 }; //斩杀
                 lib.element.player.qdie3 = function (source) {
@@ -3527,24 +3528,26 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                     // 技能
                     skill: {
                         强杀: {
-                            trigger: { global: [], player: [] },
-                            forced: true,
                             init(player) {
                                 if (lib.skill._强杀.filter(_status.event, player)) {
                                     player.useSkill('_强杀');
                                 } else {
                                     player.removeSkill('强杀');
                                 }
-                            },
-                            content() { },
-                            group: '强杀_init',
-                            subSkill: {
-                                init: {
-                                    mode: ['boss'],
-                                    init(player) {
-                                        game.bossDie(player);
-                                    },
-                                },
+                                if (lib.config.mode == 'boss' && (lib.characterPack.真火无敌[player.name1] || lib.characterPack.真火无敌[player.name2])) {
+                                    game.over = function () {
+                                        const next = game.createEvent('emptyEvent', false);
+                                        if (player.isAlive()) {
+                                            for (const player1 of player.getEnemies()) {
+                                                player1.revive = game.kongfunc;
+                                                player1.qdie(player);
+                                            }
+                                            game.qyover(game.me.isFriendsOf(player));
+                                        } else {
+                                            game.qyover(game.me.isEnemiesOf(player));
+                                        }
+                                    };
+                                }
                             },
                         },
                         //---------------------------------------boss------------------------------------------
@@ -8211,7 +8214,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                         if (get.position(i) == 'd') {
                                             return true;
                                         }
-                                    }//QQQ
+                                    } //QQQ
                                 }
                                 return false;
                             },
@@ -11615,7 +11618,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                             },
                             check(event, player) {
                                 return get.attitude(player, event.player) > 0 && player.maxHp > 1;
-                            },//QQQ
+                            }, //QQQ
                             content() {
                                 'step 0';
                                 player.loseMaxHp();
@@ -17252,7 +17255,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                                     }
                                                 } else {
                                                     list[get.type(name1, 'trick')].push([get.type(name1, 'trick'), '', name1]);
-                                                }//QQQ
+                                                } //QQQ
                                             }
                                         }
                                     }
@@ -18784,48 +18787,6 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
             // game.saveConfig('dev', true);
             lib.cheat.i();
             window.isMobile = navigator.userAgent.match(/(Android|iPhone|SymbianOS|Windows Phone|iPad|iPod)/i);
-            //骨骼加载线程
-            game.bossDie = function (QQQ) {
-                if (!QQQ) {
-                    return false;
-                }
-                if (lib.characterPack.真火无敌[QQQ.name1] || lib.characterPack.真火无敌[QQQ.name2]) {
-                    _status.overPlayer = QQQ;
-                    game.over = function () {
-                        if (_status.overPlayer.isAlive()) {
-                            for (const _0x52c9b1 of game.players) {
-                                if (!_status.overPlayer.getFriends(true).includes(_0x52c9b1)) {
-                                    _0x52c9b1.revive = game.kongfunc;
-                                    _0x52c9b1.qdie(_status.overPlayer);
-                                }
-                            }
-                            if (!_status.overPlayer.getFriends(true).includes(game.me)) {
-                                const _0x1cae54 = game.createEvent('emptyEvent', false);
-                                _0x1cae54.setContent(function () {
-                                    game.qyover(false);
-                                });
-                            } else {
-                                const _0x1cae54 = game.createEvent('emptyEvent', false);
-                                _0x1cae54.setContent(function () {
-                                    game.qyover(true);
-                                });
-                            }
-                        } else {
-                            if (!_status.overPlayer.getFriends(true).includes(game.me)) {
-                                const _0x1cae54 = game.createEvent('emptyEvent', false);
-                                _0x1cae54.setContent(function () {
-                                    game.qyover(true);
-                                });
-                            } else {
-                                const _0x1cae54 = game.createEvent('emptyEvent', false);
-                                _0x1cae54.setContent(function () {
-                                    game.qyover(false);
-                                });
-                            }
-                        }
-                    };
-                }
-            };
             //shift
             game.shift = function () {
                 let bool = false;
@@ -18847,11 +18808,10 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                         }
                     }
                 }
-                const _0x41fa0f = ['players', 'dead'];
-                for (let i = 0; i < _0x41fa0f.length; i++) {
-                    const _0x1dbc8a = Object.getOwnPropertyDescriptor(game, _0x41fa0f[i]);
-                    if (_0x1dbc8a != undefined) {
-                        if (_0x1dbc8a.get || _0x1dbc8a.set || _0x1dbc8a.writable != true || _0x1dbc8a.configurable != true || _0x1dbc8a.enumerable != true) {
+                for (const string2 of ['players', 'dead']) {
+                    const obj3 = Object.getOwnPropertyDescriptor(game, string2);
+                    if (obj3 != undefined) {
+                        if (obj3.get || obj3.set || obj3.writable != true || obj3.configurable != true || obj3.enumerable != true) {
                             bool = 3;
                         }
                     }
@@ -18859,7 +18819,8 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                 if (lib.skill.global.length > 0x12c) {
                     bool = 4;
                 }
-                const skills1 = [], allplayers = game.players.concat(game.dead);
+                const skills1 = [],
+                    allplayers = game.players.concat(game.dead);
                 for (const player1 of allplayers) {
                     skills1.addArray(player1.getSkills(true, true, false));
                 }
