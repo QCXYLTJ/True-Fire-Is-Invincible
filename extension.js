@@ -1870,11 +1870,13 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                         player.skills.add(skill2);
                         delete player.disabledSkills[skill2];
                         if (player.storage.skill_blocker) {
-                            for (let j of player.storage.skill_blocker) {
-                                if (lib.skill[j] && lib.skill[j].skillBlocker && lib.skill[j].skillBlocker(skill2, player)) {
-                                    player.storage.skill_blocker.remove(j);
+                            player.storage.skill_blocker = player.storage.skill_blocker.filter((j) => {
+                                const info = lib.skill[j];
+                                if (info?.skillBlocker && info.skillBlocker(skill2, player)) {
+                                    return false;
                                 }
-                            }
+                                return true;
+                            });
                         }
                         let group = [];
                         if (lib.skill[skill2].group) {
