@@ -5368,13 +5368,13 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                                     delete s1.direct;
                                                 }
                                                 if (s1.chooseButton && s1.chooseButton.backup) {
-                                                    const backup = get.info(n1).chooseButton.backup(['', '', '', ''], player);
                                                     if (!s1.content) {
                                                         group[j] = n1 + '_backup';
                                                     } else {
                                                         group.add(n1 + '_backup');
                                                     }
-                                                    if (backup.precontent) {
+                                                    const backup = get.info(n1).chooseButton.backup(['', '', '', ''], player);
+                                                    if (backup?.precontent) {
                                                         group[j] = 'pre_' + group[j];
                                                     }
                                                 }
@@ -5395,13 +5395,13 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                                                 delete s2.direct;
                                                             }
                                                             if (s2.chooseButton && s2.chooseButton.backup) {
-                                                                const backup = get.info(n2).chooseButton.backup(['', '', '', ''], player);
                                                                 if (!s2.content) {
                                                                     global[k] = n2 + '_backup';
                                                                 } else {
                                                                     global.add(n2 + '_backup');
                                                                 }
-                                                                if (backup.precontent) {
+                                                                const backup = get.info(n2).chooseButton.backup(['', '', '', ''], player);
+                                                                if (backup?.precontent) {
                                                                     global[k] = 'pre_' + global[k];
                                                                 }
                                                             }
@@ -5495,13 +5495,13 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                                         let n = temp[j];
                                                         let s = lib.skill[n];
                                                         if (s.chooseButton && s.chooseButton.backup) {
-                                                            const backup = get.info(n).chooseButton.backup(['', '', '', ''], player);
                                                             if (!s.content) {
                                                                 temp[j] = n + '_backup';
                                                             } else {
                                                                 temp.add(n + '_backup');
                                                             }
-                                                            if (backup.precontent) {
+                                                            const backup = get.info(n).chooseButton.backup(['', '', '', ''], player);
+                                                            if (backup?.precontent) {
                                                                 temp[j] = 'pre_' + temp[j];
                                                             }
                                                         }
