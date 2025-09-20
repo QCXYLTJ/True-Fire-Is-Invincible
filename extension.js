@@ -2762,6 +2762,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                     next.player = player;
                     next._triggered = null;
                     next.restMap = { type: null, count: null, audio: null };
+                    next.excludeMark = [];
                     next.setContent('die');
                     return next;
                 }; //斩杀
