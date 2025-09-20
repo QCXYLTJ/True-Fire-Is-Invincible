@@ -15253,7 +15253,9 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                         player: 'useCardAfter',
                                     },
                                     filter(event, player) {
-                                        if (!['trick', 'basic'].includes(get.type(event.card))) return false;
+                                        if (!['trick', 'basic'].includes(get.type(event.card))) {
+                                            return false;
+                                        }
                                         var players = _status.ymyuhun_zuo.concat(_status.ymyuhun_you);
                                         return players && players.length && !event.getParent('ymyuhun_use', true);
                                     },
