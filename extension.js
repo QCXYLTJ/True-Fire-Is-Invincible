@@ -168,10 +168,10 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                             }
                         }
                         if (card.length) {
-                            let name = card.randomGet();
+                            const name = card.randomGet();
                             let equ = get.cardPile(function (card) {
-                                return card.name == equ;
-                            });
+                                return card.name == name;
+                            });//QQQ
                             if (!equ) {
                                 equ = game.createCard2({ name });
                             }
@@ -1917,6 +1917,8 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                             const next1 = game.createEvent(eventname);
                             next1.player = player;
                             next1.reason = reason1;
+                            next1.restMap = { type: null, count: null, audio: null };
+                            next1.excludeMark = [];
                             if (reason1) {
                                 next1.source = reason1.source;
                             }
