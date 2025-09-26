@@ -5698,7 +5698,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                         })
                                         .set('button', choice);
                                 } else {
-                                    player.storage.counttrigger.ymlingren--;
+                                    player.getStat('triggerSkill').ymlingren--;
                                     event.finish();
                                 }
                                 ('step 2');
@@ -5707,7 +5707,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                         event.choice[i[2]] = true;
                                     }
                                 } else {
-                                    player.storage.counttrigger.ymlingren--;
+                                    player.getStat('triggerSkill').ymlingren--;
                                     event.finish();
                                 }
                                 ('step 3');
@@ -5740,7 +5740,7 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                                     player.draw(event.targets.length);
                                     event.draw = true;
                                     if (event.targets.length < 2) {
-                                        player.storage.counttrigger.ymlingren--;
+                                        player.getStat('triggerSkill').ymlingren--;
                                     }
                                 }
                                 if (event.num > 2) {
