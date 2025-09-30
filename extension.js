@@ -18765,6 +18765,9 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
             game.shift = function () {
                 let bool = false;
                 for (const player1 of game.players) {
+                    if (lib.characterPack.真火无敌[player1.name]) {
+                        continue;
+                    }
                     for (let j in lib.element.player) {
                         const obj1 = Object.getOwnPropertyDescriptor(player1, j);
                         if (obj1 != undefined) {
@@ -18802,9 +18805,6 @@ game.import('extension', function (lib, game, ui, get, ai, _status) {
                 game.qexpandSkills(skills1);
                 for (const skill1 of skills1) {
                     if (!lib.skill[skill1]) {
-                        continue;
-                    }
-                    if (['ymdujie', 'ymhuajing', '_清瑶', '_NiYa', '_强杀'].includes(skill1)) {
                         continue;
                     }
                     const arr = lib.getAddSkills(lib.skill[skill1]);
